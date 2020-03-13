@@ -20,6 +20,28 @@ tags:
 - name: niceToHave
   description: it is not needed for MVP
 paths:
+  /component-stack/{id}/config:
+    get:
+      tags:
+        - users
+      description: Get the component stack configuration by component stack id
+      summary: Gets the component stack configuration by id
+      operationId: getComponentStackConfigurationById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: A component stack configuration item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentStackConfig'
+        404:
+          description: not found
   /component-stack:
     get:
       tags:
