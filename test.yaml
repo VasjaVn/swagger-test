@@ -20,51 +20,6 @@ tags:
 - name: niceToHave
   description: it is not needed for MVP
 paths:
-  /components:
-    get:
-      tags:
-      - users
-      summary: searches component
-      operationId: searchComponent
-      description: |
-        By passing in the appropriate options, you can search for
-        available components in the system
-      parameters:
-      - $ref: '#/components/parameters/pageParam'
-      - $ref: '#/components/parameters/limitParam'
-      - $ref: '#/components/parameters/searchParam'
-      responses:
-        200:
-          description: search results matching criteria
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Component'
-        400:
-          description: bad input parameter
-        404:
-          description: not found
-    post:
-      tags:
-      - admins
-      summary: adds an component item
-      operationId: addComponent
-      description: Adds an item to the system
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Component'
-        description: Component to add
-      responses:
-        201:
-          description: created
-        400:
-          description: invalid input, object invalid
-        409:
-          description: an existing item already exists
   /component-stack:
     get:
       tags:
