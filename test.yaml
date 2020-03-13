@@ -1,11 +1,11 @@
-swagger: '2.0'
+openapi: 3.0.0
 info:
-  description: This is a simple API (GIT COMMIT - TEST COMMIT 2)
+  description: This is a SCDADL  API
   version: 1.0.0
-  title: Simple Inventory API
+  title: SCDADL API
   # put the contact info for your development or API team
   contact:
-    email: you@your-company.com
+    email: karol.obalka@refinitiv.com
 
   license:
     name: Apache 2.0
@@ -15,110 +15,431 @@ info:
 tags:
 - name: admins
   description: Secured Admin-only calls
-- name: developers
-  description: Operations available to regular developers
-
+- name: users
+  description: Operations available to regular users
+- name: niceToHave
+  description: it is not needed for MVP
 paths:
-  /inventory:
+  /components:
     get:
       tags:
-      - developers
-      summary: searches inventory
-      operationId: searchInventory
+      - users
+      summary: searches component
+      operationId: searchComponent
       description: |
         By passing in the appropriate options, you can search for
-        available inventory in the system
-      produces:
-      - application/json
+        available components in the system
       parameters:
-      - in: query
-        name: searchString
-        description: pass an optional search string for looking up inventory
-        required: false
-        type: string
-      - in: query
-        name: skip
-        description: number of records to skip for pagination
-        type: integer
-        format: int32
-        minimum: 0
-      - in: query
-        name: limit
-        description: maximum number of records to return
-        type: integer
-        format: int32
-        minimum: 0
-        maximum: 50
+      - $ref: '#/components/parameters/pageParam'
+      - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/searchParam'
       responses:
         200:
           description: search results matching criteria
-          schema:
-            type: array
-            items:
-              $ref: '#/definitions/InventoryItem'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Component'
         400:
           description: bad input parameter
+        404:
+          description: not found
     post:
       tags:
       - admins
-      summary: adds an inventory item
-      operationId: addInventory
+      summary: adds an component item
+      operationId: addComponent
       description: Adds an item to the system
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      parameters:
-      - in: body
-        name: inventoryItem
-        description: Inventory item to add
-        schema:
-          $ref: '#/definitions/InventoryItem'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Component'
+        description: Component to add
       responses:
         201:
-          description: item created
+          description: created
         400:
           description: invalid input, object invalid
         409:
           description: an existing item already exists
-definitions:
-  InventoryItem:
-    type: object
-    required:
-    - id
-    - name
-    - manufacturer
-    - releaseDate
-    properties:
-      id:
+  /component-stack:
+    get:
+      tags:
+      - users
+      summary: searches component stacks by stack name, component name
+      operationId: searchComponentStack
+      parameters:
+      - $ref: '#/components/parameters/pageParam'
+      - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/searchParam'
+      responses:
+        200:
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComponentStack'
+        400:
+          description: bad input parameter
+        404:
+          description: not found
+    post:
+      tags:
+      - admins
+      summary: adds an component stack item
+      operationId: addComponentStack
+      description: Adds an item to the system
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentStack'
+        description: Component to add
+      responses:
+        201:
+          description: created
+        400:
+          description: invalid input, object invalid
+        409:
+          description: an existing item already exists
+  /component-stack/{id}:
+    get:
+      tags:
+      - users
+      description: Get the component stack by id
+      summary: Gets the component by id
+      operationId: getComponentStackById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: A component stack item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentStack'
+        404:
+          description: not found
+    put:
+      tags:
+      - users
+      description: updates a component stack
+      summary: updates a component stack
+      operationId: updateComponentStackById
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentStack'
+      responses:
+        200:
+          description: updated
+        400:
+          description: invalid input, object invalid
+        404:
+          description: not found
+  /component-stack/{id}/versions:
+    get:
+      tags:
+      - users
+      description: Get the component stack versions by component stack id
+      summary: Gets the component stack versions  by id
+      operationId: getComponentStackVersionById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: A component stack item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentStackVersion'
+        404:
+          description: not found
+    post:
+      tags:
+      - users
+      description: creates a new component stack version for Component Stack
+      summary: creates a new component stack version
+      operationId: createComponentStackVersion
+      parameters:
+      - name: id
+        in: path
+        schema:
+          type: integer
+        required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentStackVersion'
+      responses:
+        201:
+          description: updated
+        400:
+          description: invalid input, object invalid
+        404:
+          description: not found
+  /component-stack-versions:
+    get:
+      tags:
+      - users
+      summary: searches component stack version by component stack name, component name
+      operationId: searchComponentStackVersion
+      parameters:
+      - $ref: '#/components/parameters/pageParam'
+      - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/searchParam'
+      responses:
+        200:
+          description: search results matching criteria
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ComponentStackVersion'
+        400:
+          description: bad input parameter
+        404:
+          description: not found
+  /component-stack-versions/{id}:
+    get:
+      tags:
+      - users
+      summary: gets component stack version by id
+      operationId: searchComponentStackVersionById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        200:
+          description: A component stack item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComponentStackVersion'
+        404:
+          description: not found
+
+components:
+  parameters:
+    pageParam:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: The page number.
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: The numbers of items to return.
+    searchParam:
+      in: query
+      name: search
+      required: false
+      schema:
         type: string
-        format: uuid
-        example: d290f1ee-6c54-4b01-90e6-d701748f0851
-      name:
-        type: string
-        example: Widget Adapter
-      releaseDate:
-        type: string
-        format: date-time
-        example: 2016-08-29T09:12:33.001Z
-      manufacturer:
-        $ref: '#/definitions/Manufacturer'
-  Manufacturer:
-    required:
-    - name
-    properties:
-      name:
-        type: string
-        example: ACME Corporation
-      homePage:
-        type: string
-        format: url
-        example:  https://www.acme-corp.com
-      phone:
-        type: string
-        example: 408-867-5309
-# Added by API Auto Mocking Plugin
-host: virtserver.swaggerhub.com
-basePath: /First_Second/test/1.0.0
-schemes:
- - https
+      description: The search string.
+  schemas:
+    Component:
+      type: object
+      required:
+      - id
+      - name
+      - componentGroup
+      - platform
+      - assetInsightId
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 101
+        name:
+          type: string
+          example: Eikon_ABC
+        componentGroup:
+          type: string
+          example: Eikon
+        platform:
+          type: string
+          example: eikon
+        assetInsightId:
+          type: integer
+          example: 2744
+    ComponentVersionBase:
+      type: object
+      required:
+      - id
+      - packageUrl
+      - version
+      - qualityGrade
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 101
+        packageUrl:
+          type: string
+        version:
+          type: string
+          example: <major>.<minor>.<patch>-<build>-<label>
+        qualityGrade:
+          type: string
+        versionValidated:
+          type: string
+          enum: [new, processing, true, false]
+        versionValidationError:
+          type: string
+        versionAvoid:
+          type: string
+          enum: [Bad Release, Deprecated, Not Complete]
+    ComponentVersion:
+      allOf:
+      - $ref: '#/components/schemas/ComponentVersionBase'
+      - type: object
+        properties:
+          component:
+            $ref: '#/components/schemas/Component'
+      required:
+      - id
+      - packageUrl
+      - version
+      - qualityGrade
+      - component
+    ComponentVersionRequestBody:
+      type: object
+      required:
+      - id
+      - packageUrl
+      - version
+      - qualityGrade
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 104
+        packageUrl:
+          type: string
+        version:
+          type: string
+          example: <major>.<minor>.<patch>-<build>-<label>
+        qualityGrade:
+          type: string
+        versionValidated:
+          type: string
+          enum: [new, processing, true, false]
+        versionValidationError:
+          type: string
+        versionAvoid:
+          type: string
+          enum: [Bad Release, Deprecated, Not Complete]
+    ComponenentServer:
+      required:
+      - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 103
+        hostname:
+          type: string
+          example: icolab
+        environmentClass:
+          type: string
+          enum: [production, pre_production, integration_testing, quality_assurance, development, lab]
+          example: production
+        buildingCode:
+          type: string
+          example: DTC01
+        location:
+          type: string
+        assetInsightID:
+          type: string
+        serverType:
+          type: string
+        environmentClassInstance:
+          type: string
+        metricGroup:
+          type: string
+    ComponentStack:
+      required:
+      - name
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 102
+        name:
+          type: string
+          example: EAS_Stack
+        nextAutoVerStartAt:
+          type: string
+          example: 2.1.0
+    ComponentStackVersion:
+      required:
+      - version
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 54
+        version:
+          type: string
+          example: 2.1.0
+        validated:
+          type: boolean
+        puppetLastUsed:
+          type: string
+          format: date-time
+        componentStack:
+          $ref: '#/components/schemas/ComponentStack'
+        componentConfiguration:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComponentConfiguration'
+    ComponentConfiguration:
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 201
+        componentVersion:
+          $ref: '#/components/schemas/ComponentVersionBase'
+        triggerNewStack:
+          type: boolean
+        minQualityGrade:
+          type: string
+servers:
+- description: SwaggerHub API Auto Mocking
+  url: https://virtserver.swaggerhub.com/kobalka9/scdadl2/1.0.0
